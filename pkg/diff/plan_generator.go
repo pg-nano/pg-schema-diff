@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -106,7 +107,7 @@ func WithGetSchemaOpts(getSchemaOpts ...externalschema.GetSchemaOpt) PlanOpt {
 // newDDL:  		DDL encoding the new schema
 // opts:  			Additional options to configure the plan generation
 func GeneratePlan(ctx context.Context, queryable sqldb.Queryable, tempdbFactory tempdb.Factory, newDDL []string, opts ...PlanOpt) (Plan, error) {
-	return Generate(ctx, queryable, DDLSchemaSource(newDDL), append(opts, WithTempDbFactory(tempdbFactory), WithIncludeSchemas("public"))...)
+	return Generate(ctx, queryable, DDLSchemaSource(newDDL, ""), append(opts, WithTempDbFactory(tempdbFactory), WithIncludeSchemas("public"))...)
 }
 
 // Generate generates a migration plan to migrate the database to the target schema
@@ -155,9 +156,20 @@ func Generate(
 		return Plan{}, fmt.Errorf("generating current schema hash: %w", err)
 	}
 
+	prePlanDDL := ""
+	// Prepend pre-plan file statements if available
+	if ddlSource, ok := targetSchema.(*ddlSchemaSource); ok && ddlSource.prePlanFile != "" {
+		content, err := os.ReadFile(ddlSource.prePlanFile)
+		if err != nil {
+			return Plan{}, fmt.Errorf("reading pre-plan file: %w", err)
+		}
+		prePlanDDL = string(content)
+	}
+
 	plan := Plan{
 		Statements:        statements,
 		CurrentSchemaHash: hash,
+		PrePlanDDL:        prePlanDDL,
 	}
 
 	if planOptions.validatePlan {
@@ -216,11 +228,11 @@ func assertValidPlan(ctx context.Context,
 	// on the database.
 	setMaxConnectionsIfNotSet(tempDb.ConnPool, tempDbMaxConnections)
 
-	if err := setSchemaForEmptyDatabase(ctx, tempDb, currentSchema, planOptions); err != nil {
+	if err := setSchemaForEmptyDatabase(ctx, tempDb, currentSchema, planOptions, plan.PrePlanDDL); err != nil {
 		return fmt.Errorf("inserting schema in temporary database: %w", err)
 	}
 
-	if err := executeStatementsIgnoreTimeouts(ctx, tempDb.ConnPool, plan.Statements); err != nil {
+	if err := executeStatementsIgnoreTimeouts(ctx, tempDb.ConnPool, plan.Statements, plan.PrePlanDDL); err != nil {
 		return fmt.Errorf("running migration plan: %w", err)
 	}
 
@@ -238,7 +250,7 @@ func setMaxConnectionsIfNotSet(db *sql.DB, defaultMax int) {
 	}
 }
 
-func setSchemaForEmptyDatabase(ctx context.Context, emptyDb *tempdb.Database, targetSchema schema.Schema, options *planOptions) error {
+func setSchemaForEmptyDatabase(ctx context.Context, emptyDb *tempdb.Database, targetSchema schema.Schema, options *planOptions, prePlanDDL string) error {
 	// We can't create invalid indexes. We'll mark them valid in the schema, which should be functionally
 	// equivalent for the sake of DDL and other statements.
 	//
@@ -261,7 +273,7 @@ func setSchemaForEmptyDatabase(ctx context.Context, emptyDb *tempdb.Database, ta
 	if err != nil {
 		return fmt.Errorf("building schema diff: %w", err)
 	}
-	if err := executeStatementsIgnoreTimeouts(ctx, emptyDb.ConnPool, statements); err != nil {
+	if err := executeStatementsIgnoreTimeouts(ctx, emptyDb.ConnPool, statements, prePlanDDL); err != nil {
 		return fmt.Errorf("executing statements: %w\n%# v", err, pretty.Formatter(statements))
 	}
 	return nil
@@ -290,7 +302,7 @@ func assertMigratedSchemaMatchesTarget(migratedSchema, targetSchema schema.Schem
 
 // executeStatementsIgnoreTimeouts executes the statements using the sql connection but ignores any provided timeouts.
 // This function is currently used to validate migration plans.
-func executeStatementsIgnoreTimeouts(ctx context.Context, connPool *sql.DB, statements []Statement) error {
+func executeStatementsIgnoreTimeouts(ctx context.Context, connPool *sql.DB, statements []Statement, prePlanDDL string) error {
 	conn, err := connPool.Conn(ctx)
 	if err != nil {
 		return fmt.Errorf("getting connection from pool: %w", err)
@@ -300,6 +312,11 @@ func executeStatementsIgnoreTimeouts(ctx context.Context, connPool *sql.DB, stat
 	// Set a session-level statement_timeout to bound the execution of the migration plan.
 	if _, err := conn.ExecContext(ctx, fmt.Sprintf("SET SESSION statement_timeout = %d", (10*time.Second).Milliseconds())); err != nil {
 		return fmt.Errorf("setting statement timeout: %w", err)
+	}
+	if prePlanDDL != "" {
+		if _, err := conn.ExecContext(ctx, prePlanDDL); err != nil {
+			return fmt.Errorf("executing pre-plan DDL: %w", err)
+		}
 	}
 	// Due to the way *sql.Db works, when a statement_timeout is set for the session, it will NOT reset
 	// by default when it's returned to the pool.
