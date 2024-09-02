@@ -9,7 +9,7 @@
     "prepare": "esbuild scripts/postinstall.ts --bundle --format=cjs --platform=node --target=node16 --outfile=scripts/postinstall.cjs",
     "postinstall": "node -e \"fs.existsSync('.git') || import('./scripts/postinstall.cjs')\""
   },
-  "files": ["scripts/postinstall.cjs"],
+  "files": ["pg-schema-diff", "scripts/postinstall.cjs"],
   "devDependencies": {
     "grab-github-release": "^2.1.0"
   },
