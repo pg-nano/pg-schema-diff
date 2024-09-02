@@ -24,3 +24,13 @@ vendor/
 
 # Intellij
 .idea/
+
+# Node.js
+node_modules/
+scripts/*.cjs
+
+# Goreleaser
+dist/
+
+# Local binary
+pg-schema-diff

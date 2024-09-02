@@ -1,0 +1,21 @@
+{
+  "name": "@pg-nano/pg-schema-diff",
+  "version": "0.7.0",
+  "type": "module",
+  "bin": {
+    "pg-schema-diff": "./pg-schema-diff"
+  },
+  "scripts": {
+    "prepare": "esbuild scripts/postinstall.ts --bundle --format=cjs --platform=node --target=node16 --outfile=scripts/postinstall.cjs",
+    "postinstall": "node -e \"fs.existsSync('.git') || import('./scripts/postinstall.cjs')\""
+  },
+  "files": ["scripts/postinstall.cjs"],
+  "devDependencies": {
+    "grab-github-release": "^2.1.0"
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "grab-github-release": "patches/grab-github-release.patch"
+    }
+  }
+}
