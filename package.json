@@ -17,5 +17,9 @@
     "patchedDependencies": {
       "grab-github-release": "patches/grab-github-release.patch"
     }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pg-nano/pg-schema-diff.git"
   }
 }
