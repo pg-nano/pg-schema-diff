@@ -11,12 +11,7 @@
   },
   "files": ["pg-schema-diff", "scripts/postinstall.cjs"],
   "devDependencies": {
-    "grab-github-release": "^2.1.0"
-  },
-  "pnpm": {
-    "patchedDependencies": {
-      "grab-github-release": "patches/grab-github-release.patch"
-    }
+    "grab-github-release": "npm:@aleclarson/grab-github-release@^2.1.2"
   },
   "repository": {
     "type": "git",
