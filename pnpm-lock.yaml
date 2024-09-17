@@ -1,33 +1,28 @@
-lockfileVersion: '6.0'
+lockfileVersion: '9.0'
 
 settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-devDependencies:
-  grab-github-release:
-    specifier: npm:@aleclarson/grab-github-release@^2.1.2
-    version: /@aleclarson/grab-github-release@2.1.2
+importers:
+
+  .:
+    devDependencies:
+      grab-github-release:
+        specifier: npm:@aleclarson/grab-github-release@^2.1.2
+        version: '@aleclarson/grab-github-release@2.1.2'
 
 packages:
 
-  /@aleclarson/grab-github-release@2.1.2:
+  '@aleclarson/grab-github-release@2.1.2':
     resolution: {integrity: sha512-p76mbqTUChgx4jCSWqlXvmzR2ws7eBcyC3zFjjlRDm9kEgaB10tFgiU5swKQaoKa8NnE4EFTi9favZ+1/HZCRw==}
     engines: {node: '>=18'}
     hasBin: true
-    dependencies:
-      debug: 4.3.7
-      semver: 7.6.3
-      yauzl: 3.1.3
-    transitivePeerDependencies:
-      - supports-color
-    dev: true
 
-  /buffer-crc32@0.2.13:
+  buffer-crc32@0.2.13:
     resolution: {integrity: sha512-VO9Ht/+p3SN7SKWqcrgEzjGbRSJYTx+Q1pTQC0wrWqHx0vpJraQ6GtHx8tvcg1rlK1byhU5gccxgOgj7B0TDkQ==}
-    dev: true
 
-  /debug@4.3.7:
+  debug@4.3.7:
     resolution: {integrity: sha512-Er2nc/H7RrMXZBFCEim6TCmMk02Z8vLC2Rbi1KEBggpo0fS6l0S1nnapwmIi3yW/+GOJap1Krg4w0Hg80oCqgQ==}
     engines: {node: '>=6.0'}
     peerDependencies:
@@ -35,28 +30,45 @@ packages:
     peerDependenciesMeta:
       supports-color:
         optional: true
-    dependencies:
-      ms: 2.1.3
-    dev: true
 
-  /ms@2.1.3:
+  ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
-    dev: true
 
-  /pend@1.2.0:
+  pend@1.2.0:
     resolution: {integrity: sha512-F3asv42UuXchdzt+xXqfW1OGlVBe+mxa2mqI0pg5yAHZPvFmY3Y6drSf/GQ1A86WgWEN9Kzh/WrgKa6iGcHXLg==}
-    dev: true
 
-  /semver@7.6.3:
+  semver@7.6.3:
     resolution: {integrity: sha512-oVekP1cKtI+CTDvHWYFUcMtsK/00wmAEfyqKfNdARm8u1wNVhSgaX7A8d4UuIlUI5e84iEwOhs7ZPYRmzU9U6A==}
     engines: {node: '>=10'}
     hasBin: true
-    dev: true
 
-  /yauzl@3.1.3:
+  yauzl@3.1.3:
     resolution: {integrity: sha512-JCCdmlJJWv7L0q/KylOekyRaUrdEoUxWkWVcgorosTROCFWiS9p2NNPE9Yb91ak7b1N5SxAZEliWpspbZccivw==}
     engines: {node: '>=12'}
+
+snapshots:
+
+  '@aleclarson/grab-github-release@2.1.2':
+    dependencies:
+      debug: 4.3.7
+      semver: 7.6.3
+      yauzl: 3.1.3
+    transitivePeerDependencies:
+      - supports-color
+
+  buffer-crc32@0.2.13: {}
+
+  debug@4.3.7:
+    dependencies:
+      ms: 2.1.3
+
+  ms@2.1.3: {}
+
+  pend@1.2.0: {}
+
+  semver@7.6.3: {}
+
+  yauzl@3.1.3:
     dependencies:
       buffer-crc32: 0.2.13
       pend: 1.2.0
-    dev: true
