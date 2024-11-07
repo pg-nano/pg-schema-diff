@@ -6,6 +6,7 @@
     "pg-schema-diff": "./pg-schema-diff"
   },
   "scripts": {
+    "build": "go build -o pg-schema-diff ./cmd/pg-schema-diff",
     "prepublishOnly": "esbuild scripts/postinstall.ts --bundle --format=cjs --platform=node --target=node16 --outfile=scripts/postinstall.cjs",
     "postinstall": "node -e \"fs.existsSync('.git') || import('./scripts/postinstall.cjs')\""
   },
