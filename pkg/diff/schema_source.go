@@ -114,6 +114,10 @@ func (s *ddlSchemaSource) GetSchema(ctx context.Context, deps schemaSourcePlanDe
 		}
 	}(tempDb.ContextualCloser)
 
+	if _, err := tempDb.ConnPool.ExecContext(ctx, "SET SESSION check_function_bodies = off"); err != nil {
+		return schema.Schema{}, fmt.Errorf("setting check_function_bodies: %w", err)
+	}
+
 	for _, ddlStmt := range s.ddl {
 		if _, err := tempDb.ConnPool.ExecContext(ctx, ddlStmt.stmt); err != nil {
 			debugInfo := ""
