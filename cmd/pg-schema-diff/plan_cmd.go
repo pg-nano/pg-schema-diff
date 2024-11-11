@@ -75,7 +75,6 @@ type (
 
 	schemaSourceFlags struct {
 		schemaDirs        []string
-		prePlanFile       string
 		targetDatabaseDSN string
 	}
 
@@ -148,11 +147,6 @@ func schemaSourceFlagsVar(cmd *cobra.Command, p *schemaSourceFlags) {
 	if err := cmd.MarkFlagDirname("schema-dir"); err != nil {
 		panic(err)
 	}
-	cmd.Flags().StringVar(&p.prePlanFile, "pre-plan-file", "", "File path to a file containing DDL statements to prepend to the generated plan.")
-	if err := cmd.MarkFlagFilename("pre-plan-file"); err != nil {
-		panic(err)
-	}
-
 	cmd.Flags().StringVar(&p.targetDatabaseDSN, "schema-source-dsn", "", "DSN for the database to use as the schema source. Use to generate a diff between the target database and the schema in this database.")
 
 	cmd.MarkFlagsMutuallyExclusive("schema-dir", "schema-source-dsn")
@@ -228,7 +222,7 @@ func parsePlanConfig(p planFlags) (planConfig, error) {
 func parseSchemaSource(p schemaSourceFlags) (schemaSourceFactory, error) {
 	if len(p.schemaDirs) > 0 {
 		return func() (diff.SchemaSource, io.Closer, error) {
-			schemaSource, err := diff.DirSchemaSource(p.schemaDirs, p.prePlanFile)
+			schemaSource, err := diff.DirSchemaSource(p.schemaDirs)
 			if err != nil {
 				return nil, nil, err
 			}

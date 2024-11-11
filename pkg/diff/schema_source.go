@@ -33,13 +33,12 @@ type (
 
 	ddlSchemaSource struct {
 		ddl []ddlStatement
-		prePlanFile string
 	}
 )
 
 // DirSchemaSource returns a SchemaSource that returns a schema based on the provided directories. You must provide a tempDBFactory
 // via the WithTempDbFactory option.
-func DirSchemaSource(dirs []string, prePlanFile string) (SchemaSource, error) {
+func DirSchemaSource(dirs []string) (SchemaSource, error) {
 	var ddl []ddlStatement
 	for _, dir := range dirs {
 		stmts, err := getDDLFromPath(dir)
@@ -51,7 +50,6 @@ func DirSchemaSource(dirs []string, prePlanFile string) (SchemaSource, error) {
 	}
 	return &ddlSchemaSource{
 		ddl: ddl,
-		prePlanFile: prePlanFile,
 	}, nil
 }
 
@@ -88,7 +86,7 @@ func getDDLFromPath(path string) ([]ddlStatement, error) {
 
 // DDLSchemaSource returns a SchemaSource that returns a schema based on the provided DDL. You must provide a tempDBFactory
 // via the WithTempDbFactory option.
-func DDLSchemaSource(stmts []string, prePlanFile string) SchemaSource {
+func DDLSchemaSource(stmts []string) SchemaSource {
 	var ddl []ddlStatement
 	for _, stmt := range stmts {
 		ddl = append(ddl, ddlStatement{
@@ -98,7 +96,7 @@ func DDLSchemaSource(stmts []string, prePlanFile string) SchemaSource {
 		)
 	}
 
-	return &ddlSchemaSource{ddl: ddl, prePlanFile: prePlanFile}
+	return &ddlSchemaSource{ddl: ddl}
 }
 
 func (s *ddlSchemaSource) GetSchema(ctx context.Context, deps schemaSourcePlanDeps) (schema.Schema, error) {
@@ -115,17 +113,6 @@ func (s *ddlSchemaSource) GetSchema(ctx context.Context, deps schemaSourcePlanDe
 			deps.logger.Errorf("an error occurred while dropping the temp database: %s", err)
 		}
 	}(tempDb.ContextualCloser)
-
-	if s.prePlanFile != "" {
-		prePlanDDL, err := os.ReadFile(s.prePlanFile)
-		if err != nil {
-			return schema.Schema{}, fmt.Errorf("opening pre-plan file: %w", err)
-		}
-
-		if _, err := tempDb.ConnPool.ExecContext(ctx, string(prePlanDDL)); err != nil {
-			return schema.Schema{}, fmt.Errorf("running pre-plan DDL: %w", err)
-		}
-	}
 
 	for _, ddlStmt := range s.ddl {
 		if _, err := tempDb.ConnPool.ExecContext(ctx, ddlStmt.stmt); err != nil {
