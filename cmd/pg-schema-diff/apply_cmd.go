@@ -122,6 +122,13 @@ func runPlan(ctx context.Context, connConfig *pgx.ConnConfig, plan diff.Plan) er
 	}
 	defer conn.Close()
 
+	// Disable function bodies check for the duration of the migration.
+	// This is to prevent the migration from failing if a function is created
+	// before an object it depends on.
+	if _, err := conn.ExecContext(ctx, "SET SESSION check_function_bodies = off"); err != nil {
+		return fmt.Errorf("setting check_function_bodies: %w", err)
+	}
+
 	// Due to the way *sql.Db works, when a statement_timeout is set for the session, it will NOT reset
 	// by default when it's returned to the pool.
 	//
