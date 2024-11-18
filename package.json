@@ -1,6 +1,6 @@
 {
   "name": "@pg-nano/pg-schema-diff",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "type": "module",
   "bin": {
     "pg-schema-diff": "./pg-schema-diff"
@@ -10,7 +10,10 @@
     "prepublishOnly": "esbuild scripts/postinstall.ts --bundle --format=cjs --platform=node --target=node16 --outfile=scripts/postinstall.cjs",
     "postinstall": "node -e \"fs.existsSync('.git') || import('./scripts/postinstall.cjs')\""
   },
-  "files": ["pg-schema-diff", "scripts/postinstall.cjs"],
+  "files": [
+    "pg-schema-diff",
+    "scripts/postinstall.cjs"
+  ],
   "devDependencies": {
     "grab-github-release": "npm:@aleclarson/grab-github-release@^2.1.2"
   },
