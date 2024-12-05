@@ -1844,12 +1844,6 @@ type checkConstraintSQLVertexGenerator struct {
 }
 
 func (csg *checkConstraintSQLVertexGenerator) Add(con schema.CheckConstraint) ([]Statement, error) {
-	// UDF's in check constraints are a bad idea. Check constraints are not re-validated
-	// if the UDF changes, so it's not really a safe practice. We won't support it for now
-	if len(con.DependsOnFunctions) > 0 {
-		return nil, fmt.Errorf("check constraints that depend on UDFs: %w", ErrNotImplemented)
-	}
-
 	var stmts []Statement
 	if !con.IsValid || csg.isNewTable {
 		stmts = append(stmts, csg.createCheckConstraintStatement(con))
@@ -1893,12 +1887,6 @@ func (csg *checkConstraintSQLVertexGenerator) createCheckConstraintStatement(con
 }
 
 func (csg *checkConstraintSQLVertexGenerator) Delete(con schema.CheckConstraint) ([]Statement, error) {
-	// We won't support deleting check constraints depending on UDF's to align with not supporting adding check
-	// constraints that depend on UDF's
-	if len(con.DependsOnFunctions) > 0 {
-		return nil, fmt.Errorf("check constraints that depend on UDFs: %w", ErrNotImplemented)
-	}
-
 	return []Statement{{
 		DDL:         dropConstraintDDL(csg.tableName, schema.EscapeIdentifier(con.Name)),
 		Timeout:     statementTimeoutDefault,
@@ -1923,8 +1911,6 @@ func (csg *checkConstraintSQLVertexGenerator) Alter(diff checkConstraintDiff) ([
 		// Technically, we could support altering expression, but I don't see the use case for it. it would require more test
 		// cases than force re-adding it, and I'm not convinced it unlocks any functionality
 		return nil, fmt.Errorf("altering check constraint to resolve the following diff %s: %w", cmp.Diff(oldCopy, diff.new), ErrNotImplemented)
-	} else if len(diff.old.DependsOnFunctions) > 0 || len(diff.new.DependsOnFunctions) > 0 {
-		return nil, fmt.Errorf("check constraints that depend on UDFs: %w", ErrNotImplemented)
 	}
 
 	return stmts, nil
