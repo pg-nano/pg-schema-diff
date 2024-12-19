@@ -1,6 +1,6 @@
 {
   "name": "@pg-nano/pg-schema-diff",
-  "version": "0.7.4",
+  "version": "0.7.5",
   "type": "module",
   "bin": {
     "pg-schema-diff": "./pg-schema-diff"
